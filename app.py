@@ -1,32 +1,52 @@
-from flask import Flask, request, jsonify
+from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
+from flask_frozen import Freezer
 import requests  # to make a request to another server
 
 app = Flask(__name__)
 CORS(app)
+app.config.from_object(__name__)
+app.config['FREEZER_DESTINATION'] = "out"
+freezer = Freezer(app)
 
 # Temporary storage for the last response
 last_response = None
+queue = 0
 
-@app.route('/start', methods=['GET'])
+class ImageRequest():
+    def __init__(self, prompt, artist):
+        self._prompt = prompt
+        self._artist = artist
+
+    def send(self):
+        global queue
+        queue += 1
+        # Send the request to the server
+        return queue
+
+
+@app.route('/', methods=['GET'])
 def start():
-    return 'This should be a frontend page with input fields and a send button.'
+    return render_template(
+       'start.html'
+   )
 
-@app.route('/prompt', methods=['POST'])
+@app.route('/', methods=['POST'])
 def prompt():
     global last_response
     # Receive input fields from the frontend
     data = request.json
-    field1 = data.get('field1')
-    field2 = data.get('field2')
+    prompt = data.get('prompt')
+    artist = data.get('artist')
+    image_request = ImageRequest(prompt, artist)
+    queue = image_request.send()
     
-    # Make a request to another server (Replace with the actual URL and data)
-    # response = requests.post('http://example.com/another_server', json={"field1": field1, "field2": field2})
-    
-    # Store the response in memory
-    # last_response = response.json()
-    last_response = field1
-    return jsonify({"status": "success"})
+    last_response = prompt
+    return jsonify({"status": "success", "data": {
+        "prompt": prompt, 
+        "artist": artist, 
+        "queue": queue 
+    }})
 
 @app.route('/last', methods=['GET'])
 def last():
@@ -38,4 +58,5 @@ def display():
     return 'This should be the frontend page that updates every 15s.'
 
 if __name__ == '__main__':
+    freezer.freeze()
     app.run(port=5000)
