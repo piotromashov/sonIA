@@ -1,1 +1,20 @@
-This should be the frontend page that updates every 15s.
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Display</title>
+</head>
+<body>
+    <div id="output"></div>
+
+    <script>
+        async function fetchData() {
+            const response = await fetch('http://localhost:5000/last');
+            const data = await response.json();
+            document.getElementById("output").innerText = JSON.stringify(data);
+        }
+
+        fetchData();
+        setInterval(fetchData, 15000);  // Fetch data every 15 seconds
+    </script>
+</body>
+</html>

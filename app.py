@@ -1,29 +1,28 @@
 from flask import Flask, render_template, request, jsonify
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 from flask_frozen import Freezer
 import requests  # to make a request to another server
 
 app = Flask(__name__)
+# app.config['FREEZER_DESTINATION'] = "out"
+# freezer = Freezer(app)
 CORS(app)
-app.config.from_object(__name__)
-app.config['FREEZER_DESTINATION'] = "out"
-freezer = Freezer(app)
 
-# Temporary storage for the last response
-last_response = None
-queue = 0
+queue = []
 
 class ImageRequest():
-    def __init__(self, prompt, artist):
+    def __init__(self, prompt):
         self._prompt = prompt
-        self._artist = artist
 
     def send(self):
-        global queue
-        queue += 1
-        # Send the request to the server
-        return queue
+        # Send the server response
+        return self._prompt
 
+    def __str__(self):
+        return self._prompt
+    
+
+# ROUTES
 
 @app.route('/', methods=['GET'])
 def start():
@@ -31,32 +30,38 @@ def start():
        'start.html'
    )
 
-@app.route('/', methods=['POST'])
-def prompt():
-    global last_response
+@app.route('/prompt', methods=['POST'])
+def receive_request():
     # Receive input fields from the frontend
     data = request.json
+    print(data)
     prompt = data.get('prompt')
     artist = data.get('artist')
-    image_request = ImageRequest(prompt, artist)
-    queue = image_request.send()
+    image_request = ImageRequest(prompt)
+    queue.append(image_request)
     
-    last_response = prompt
     return jsonify({"status": "success", "data": {
         "prompt": prompt, 
         "artist": artist, 
-        "queue": queue 
+        "queue_position": len(queue)
     }})
 
 @app.route('/last', methods=['GET'])
 def last():
-    global last_response
-    return jsonify(last_response if last_response else {"status": "no data"})
+    global queue
+    if len(queue) == 0:
+        return jsonify({"status": "no data"})
+    
+    image_request = queue.pop(0)
+    response = image_request.send()
+    return jsonify(response)
 
 @app.route('/display', methods=['GET'])
 def display():
-    return 'This should be the frontend page that updates every 15s.'
+    return render_template(
+       'display.html'
+   )
 
 if __name__ == '__main__':
-    freezer.freeze()
-    app.run(port=5000)
+    # freezer.freeze()
+    app.run(port=5000, debug=True)
