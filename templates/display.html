@@ -4,17 +4,24 @@
     <title>Display</title>
 </head>
 <body>
-    <div id="output"></div>
+    <img id="dynamicImage" alt="Dynamic Image" width="1024" />
+    
+    <script type="text/javascript">
+        // Function to update image
+        function updateImage() {
+            const imageUrl = "/last";
+            
+            // Use a cache-busting URL parameter to ensure a new image is fetched each time
+            const uniqueUrl = `${imageUrl}?t=${new Date().getTime()}`;
+            console.log(uniqueUrl)
+            document.getElementById("dynamicImage").src = uniqueUrl;
 
-    <script>
-        async function fetchData() {
-            const response = await fetch('http://localhost:5000/last');
-            const data = await response.json();
-            document.getElementById("output").innerText = JSON.stringify(data);
+            // Refresh the image every 30 seconds (30000 milliseconds)
+            setTimeout(updateImage, 30000);
         }
 
-        fetchData();
-        setInterval(fetchData, 15000);  // Fetch data every 15 seconds
+        // Initial call to start the loop
+        updateImage();
     </script>
 </body>
 </html>
