@@ -1,5 +1,10 @@
-Flask
+flask
 Flask-CORS
 requests
 Frozen-Flask
 python-dotenv
+torch==2
+torchvision
+diffusers==0.21.1
+transformers
+accelerate

@@ -1,19 +1,21 @@
 import os
 import requests  # to make a request to another server
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, jsonify, Response
+from flask import Flask, render_template, request, jsonify, send_file
+# from flask_ngrok import run_with_ngrok
 from flask_cors import CORS
-from flask_frozen import Freezer
 from io import BytesIO
 
-
-load_dotenv()
-
-HF_ACCESS_TOKEN = os.environ.get('HF_ACCESS_TOKEN')
+# load_dotenv()
 app = Flask(__name__)
-# app.config['FREEZER_DESTINATION'] = "out"
-# freezer = Freezer(app)
+
+# Configure the upload folder and allowed file extensions
+UPLOAD_FOLDER = 'uploads/'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 CORS(app)
+# run_with_ngrok(app)
 
 queue = []
 
@@ -22,23 +24,39 @@ class ImageRequest():
         self._prompt = prompt
 
     def send(self):
-        # Send the server response
-        API_URL = "https://msao2heoteruhalz.us-east-1.aws.endpoints.huggingface.cloud"
-        headers = {"Authorization": f"Bearer {HF_ACCESS_TOKEN}"}
+        # image = self._send_test()
+        image = self._send_prod()
+        filename = self._save(image)
+        return filename
 
-        def query(payload):
-            return requests.post(API_URL, headers=headers, json=payload)
-        
-        response = query({
-            "inputs": self._prompt,
-        })
+    def send_test(self):
+        from PIL import Image
 
-        # Send the image bytes directly as the response to the original request
-        return response
+        # Open an image file
+        return Image.open(os.path.join(UPLOAD_FOLDER, 'test.png'))
+    
+    def send_prod(self):
+        from diffusers import DiffusionPipeline
+        import torch
+
+        repo_id = "../stable-diffusion-v1-5"
+        pipe = DiffusionPipeline.from_pretrained(repo_id, use_safetensors=True)
+        pipe = pipe.to("mps")
+
+        # Recommended if your computer has < 64 GB of RAM
+        pipe.enable_attention_slicing()
+
+        # Results match those from the CPU device after the warmup pass.
+        return pipe(self._prompt, num_inference_steps=25).images[0]
+    
+    def _save(self, image):
+        filename = f'{UPLOAD_FOLDER}{self._prompt}.png'
+        image.save(filename)
+        return filename
 
     def __str__(self):
         return self._prompt
-    
+
 
 # ROUTES
 
@@ -47,6 +65,7 @@ def start():
     return render_template(
        'start.html'
    )
+
 
 @app.route('/prompt', methods=['POST'])
 def receive_request():
@@ -58,12 +77,13 @@ def receive_request():
     artist = data.get('artist')
     image_request = ImageRequest(prompt)
     queue.append(image_request)
-    
+
     return jsonify({"status": "success", "data": {
-        "prompt": prompt, 
-        "artist": artist, 
+        "prompt": prompt,
+        "artist": artist,
         "queue_position": len(queue)
     }})
+
 
 @app.route('/last', methods=['GET'])
 def last():
@@ -77,14 +97,16 @@ def last():
         image_request = queue.pop(0)
 
     response = image_request.send()
-    image_bytes = response.content
+    filename = save(response, str(image_request))
 
-    print(len(queue))
-    print(image_request)
-    print(response.content)
+    print(f"queue {len(queue)}")
+    print(f"request {image_request}")
+    print(f"response {response}")
+    print(f"filename {filename}")
 
-    content_type = response.headers['Content-Type'] # Content type received from the third-party server (e.g., 'image/png')
-    return Response(image_bytes, content_type=content_type)
+    # Send the local file path back to the frontend
+    return send_file(filename, mimetype='image/png')
+
 
 @app.route('/display', methods=['GET'])
 def display():
