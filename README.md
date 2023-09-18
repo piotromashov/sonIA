@@ -1,4 +1,4 @@
-# son.IA
+# SoñIA
 
 To execute, run python app.py
 1. Open `127.0.0.1`, type your artist name and a prompt
