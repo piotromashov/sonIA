@@ -8,3 +8,5 @@ torchvision
 diffusers==0.21.1
 transformers
 accelerate
+requests
+qrcode[pil]

@@ -5,9 +5,11 @@ from flask import Flask, render_template, request, jsonify, send_file
 # from flask_ngrok import run_with_ngrok
 from flask_cors import CORS
 from io import BytesIO
+import qrcode
 
 # load_dotenv()
 app = Flask(__name__)
+port = 7001
 
 # Configure the upload folder and allowed file extensions
 UPLOAD_FOLDER = 'uploads/'
@@ -30,8 +32,8 @@ class ImageRequest():
         self.author = author
 
     def send(self):
-        # image = self._send_test()
-        image = self._send_prod()
+        image = self._send_test()
+        # image = self._send_prod()
         return image
 
     def _send_test(self):
@@ -113,6 +115,41 @@ def display():
        'display.html'
    )
 
+
+
+def get_public_ip():
+    try:
+        response = requests.get('https://api.ipify.org?format=json')
+        ip = response.json()['ip']
+        print(response.json())
+        return ip
+    except Exception as e:
+        print(f"Could not fetch public IP: {e}")
+        return None
+
+def generate_qr_code(ip, port):
+    try:
+        url = f"http://{ip}:{port}"
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(url)
+        qr.make(fit=True)
+        
+        img = qr.make_image(fill_color="black", back_color="white")
+        img.save('public_ip_qr_code.png')
+        print(f"QR code generated for {url} and saved as 'public_ip_qr_code.png'")
+    except Exception as e:
+        print(f"Could not generate QR code: {e}")
+
+
 if __name__ == '__main__':
     # freezer.freeze()
-    app.run(port=7000, debug=True)
+    ip = get_public_ip()
+    if ip:
+        generate_qr_code(ip, port)
+    
+    app.run(host='0.0.0.0', port=port, debug=True)
