@@ -19,23 +19,28 @@ CORS(app)
 
 queue = []
 
+def save(image, description, author):
+    filename = f'{UPLOAD_FOLDER}{description}-{author}.png'
+    image.save(filename)
+    return filename
+
 class ImageRequest():
-    def __init__(self, prompt):
-        self._prompt = prompt
+    def __init__(self, prompt, author):
+        self.prompt = prompt
+        self.author = author
 
     def send(self):
         # image = self._send_test()
         image = self._send_prod()
-        filename = self._save(image)
-        return filename
+        return image
 
-    def send_test(self):
+    def _send_test(self):
         from PIL import Image
 
         # Open an image file
         return Image.open(os.path.join(UPLOAD_FOLDER, 'test.png'))
     
-    def send_prod(self):
+    def _send_prod(self):
         from diffusers import DiffusionPipeline
         import torch
 
@@ -47,15 +52,10 @@ class ImageRequest():
         pipe.enable_attention_slicing()
 
         # Results match those from the CPU device after the warmup pass.
-        return pipe(self._prompt, num_inference_steps=25).images[0]
-    
-    def _save(self, image):
-        filename = f'{UPLOAD_FOLDER}{self._prompt}.png'
-        image.save(filename)
-        return filename
+        return pipe(self.prompt, num_inference_steps=25).images[0]
 
     def __str__(self):
-        return self._prompt
+        return f"{self.prompt} by {self.author}"
 
 
 # ROUTES
@@ -74,13 +74,13 @@ def receive_request():
     data = request.json
     print(data)
     prompt = data.get('prompt')
-    artist = data.get('artist')
-    image_request = ImageRequest(prompt)
+    author = data.get('artist')
+    image_request = ImageRequest(prompt, author)
     queue.append(image_request)
 
     return jsonify({"status": "success", "data": {
         "prompt": prompt,
-        "artist": artist,
+        "author": author,
         "queue_position": len(queue)
     }})
 
@@ -96,12 +96,11 @@ def last():
     else:
         image_request = queue.pop(0)
 
-    response = image_request.send()
-    filename = save(response, str(image_request))
+    image = image_request.send()
+    filename = save(image, image_request.prompt, image_request.author)
 
     print(f"queue {len(queue)}")
     print(f"request {image_request}")
-    print(f"response {response}")
     print(f"filename {filename}")
 
     # Send the local file path back to the frontend
