@@ -111,13 +111,16 @@ def receive_request():
     author = data.get('artist')
     print(f"Received prompt {prompt} by {author}")
 
+    if prompt is None or prompt == "" or author is None or author == "":
+        return jsonify({"status": "error", "message": "prompt or author is missing"})
+
     image_request = ImageRequest(prompt, author)
     queue.append(image_request)
 
     return jsonify({"status": "success", "data": {
         "prompt": prompt,
         "author": author,
-        "queue_position": len(queue)
+        "queue": [item.__str__() for item in queue]
     }})
 
 
@@ -125,7 +128,7 @@ def receive_request():
 def last():
     global queue
     if len(queue) == 0:
-        return jsonify({"status": "no data"})
+        return jsonify({"image_url": f"{UPLOAD_FOLDER}public_ip_qr_code.png", "description": "", "author": ""})
     # don't empty the queue, just return the last item
     elif len(queue) == 1:
         image_request = queue[0]
@@ -172,7 +175,7 @@ def generate_qr_code(ip, port):
         qr.make(fit=True)
         
         img = qr.make_image(fill_color="black", back_color="white")
-        img.save('public_ip_qr_code.png')
+        img.save(f'{UPLOAD_FOLDER}public_ip_qr_code.png')
         print(f"QR code generated for {url} and saved as 'public_ip_qr_code.png'")
     except Exception as e:
         print(f"Could not generate QR code: {e}")

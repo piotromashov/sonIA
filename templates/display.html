@@ -7,67 +7,89 @@
             margin: 0;
             padding: 0;
             overflow: hidden;
-            background-color: #000000;  /* Minimalistic background */
+            background-color: #000000;  
         }
-        #wrapper {
-            position: relative;
+        #container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
             height: 100vh;
-            width: 100vh; /* Images are square */
-            margin: auto;
+            width: 100vw;
         }
-        #dynamicImage {
-            position: absolute;
+        .side-wrapper {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .wrapper {
+            position: relative;
+            width: 100vh;
+            height: 100vh;
+            margin: 0 5px;
+        }
+        #dynamicImage, .sideImage {
             height: 100%;
             width: 100%;
             object-fit: contain;
         }
         #infoBox {
             position: absolute;
-            bottom: 10px;  /* Separation from bottom border */
-            left: 10px;  /* Separation from left border */
-            right: 10px;  /* Separation from right border */
-            /* display: flex; */
+            bottom: 10px; 
+            left: 10px;
+            right: 10px;
             background-color: rgba(255, 255, 255, 0.5);
             padding: 5px;
         }
-        #infoBox > p {
-            flex: 1;
-            text-align: center;  /* Centered text */
-            font-style: italic;  /* Italic font */
+        #infoBox > p#description, #infoBox > p#author {
+            text-align: center;
+            font-style: italic;
         }
-        #description {
-            flex: 1;
-            text-align: center;  /* Centered text */
-        }
+
     </style>
 </head>
 <body>
-
-    <div id="wrapper">
-        <img id="dynamicImage" alt="Dynamic Image" />
-        <div id="infoBox">
-            <p id="description"></p>
-            <p id="author"></p>
+    <div id="container">
+        <div class="side-wrapper">
+            <img class="sideImage" src="static/images/public_ip_qr_code.png" alt="Left Image">
+        </div>
+        <div class="wrapper">
+            <img id="dynamicImage" src="" alt="Dynamic Image">
+            <div id="infoBox">
+                <p id="description"></p>
+                <p id="author"></p>
+            </div>
+        </div>
+        <div class="side-wrapper">
+            <img class="sideImage" src="static/images/public_ip_qr_code.png" alt="Right Image">
         </div>
     </div>
+    <!-- Your existing JavaScript code -->
 
     <script type="text/javascript">
+
         // Function to update image and meta information
         async function updateImageAndMeta() {
             const apiUrl = "/last";
             
             const response = await fetch(apiUrl);
             const data = await response.json();
-            
-            const uniqueUrl = `${data.image_url}?t=${new Date().getTime()}`;
-            console.log("New URL:", uniqueUrl);
+            console.log(data)
 
-            document.getElementById("dynamicImage").src = uniqueUrl;
-            document.getElementById("description").innerText = `Description: ${data.description}`;
-            document.getElementById("author").innerText = `Author: ${data.author}`;
+            document.getElementById("dynamicImage").src = "static/images/public_ip_qr_code.png"
 
-            // Refresh the image and meta every 60 seconds (60000 milliseconds)
-            // setTimeout(updateImageAndMeta, 60000);
+            if (data.description === "") {
+                document.getElementById("description").innerText = "Bienvenide a jugar con IA!";
+                document.getElementById("author").innerText = "Conectate al wifi (insertar red y pass aca) y scanea para comenzar :)";
+            } else {
+                document.getElementById("dynamicImage").src = data.image_url;
+                document.getElementById("infoBox").style.display = "flex";
+                // document.getElementById("description").innerText = `Description: ${data.description}`;
+                document.getElementById("author").innerText = `${data.description} de ${data.author}`;
+            }
+
+            // Refresh the image and meta every 30 seconds (30000 milliseconds)
+            setTimeout(updateImageAndMeta, 30000);
         }
 
         // Initial call to start the loop

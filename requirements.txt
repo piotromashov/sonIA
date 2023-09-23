@@ -10,6 +10,5 @@ transformers
 accelerate
 requests
 qrcode[pil]
-invisible_watermark
 safetensors
 config
