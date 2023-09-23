@@ -1,5 +1,7 @@
 .DS_Store
-uploads/*.png
+static/images/*.png
+public_ip_qr_code.png
+
 
 
 # Byte-compiled / optimized / DLL files
