@@ -12,11 +12,11 @@ app = Flask(__name__)
 port = 7001
 
 # Configure the upload folder and allowed file extensions
-UPLOAD_FOLDER = 'uploads/'
+UPLOAD_FOLDER = 'static/images/'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-CORS(app)
+# CORS(app)
 # run_with_ngrok(app)
 
 queue = []
@@ -32,8 +32,8 @@ class ImageRequest():
         self.author = author
 
     def send(self):
-        image = self._send_test()
-        # image = self._send_prod()
+        # image = self._send_test()
+        image = self._send_prod()
         return image
 
     def _send_test(self):
@@ -104,9 +104,11 @@ def last():
     print(f"queue {len(queue)}")
     print(f"request {image_request}")
     print(f"filename {filename}")
+    
+    return jsonify({"image_url": filename, "description": image_request.prompt, "author": image_request.author})
 
     # Send the local file path back to the frontend
-    return send_file(filename, mimetype='image/png')
+    # return send_file(filename, mimetype='image/png')
 
 
 @app.route('/display', methods=['GET'])
