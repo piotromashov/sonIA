@@ -1,12 +1,46 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <title>Start</title>
+    <style>
+        body {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #333;
+            color: #fff;
+        }
+        
+        .top, .bottom {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #prompt, #artist, .btn {
+            width: 90%;
+        }
+
+        .form-control, .btn {
+            background-color: #555;
+            color: #fff;
+        }
+    </style>
 </head>
+
 <body>
-    <input type="text" id="prompt" placeholder="Prompt">
-    <input type="text" id="artist" placeholder="Artist name">
-    <button onclick="sendData()">Send</button>
+    <div class="top">
+        <input type="text" class="form-control form-control-lg" id="prompt" placeholder="Prompt">
+    </div>
+    <div class="bottom d-flex flex-column align-items-center">
+        <input type="text" class="form-control" id="artist" placeholder="Artist name">
+        <button class="btn btn-light mt-3 w-100" onclick="sendData()">Send</button>
+    </div>
 
     <script>
         async function sendData() {
@@ -27,4 +61,5 @@
         }
     </script>
 </body>
+
 </html>

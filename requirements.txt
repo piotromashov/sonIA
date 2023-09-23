@@ -3,10 +3,13 @@ Flask-CORS
 requests
 Frozen-Flask
 python-dotenv
-torch==2
+torch==2.0.0
 torchvision
 diffusers==0.21.1
 transformers
 accelerate
 requests
 qrcode[pil]
+invisible_watermark
+safetensors
+config

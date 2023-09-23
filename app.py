@@ -1,13 +1,11 @@
 import os
 import requests  # to make a request to another server
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, jsonify, send_file
-# from flask_ngrok import run_with_ngrok
-from flask_cors import CORS
+from flask import Flask, render_template, request, jsonify
 from io import BytesIO
 import qrcode
 
-# load_dotenv()
+load_dotenv()
 app = Flask(__name__)
 port = 7001
 
@@ -16,8 +14,9 @@ UPLOAD_FOLDER = 'static/images/'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# CORS(app)
-# run_with_ngrok(app)
+height = 512
+width = 512
+steps = 30
 
 queue = []
 
@@ -33,6 +32,7 @@ class ImageRequest():
 
     def send(self):
         # image = self._send_test()
+        # image = self._send_local()
         image = self._send_prod()
         return image
 
@@ -42,7 +42,7 @@ class ImageRequest():
         # Open an image file
         return Image.open(os.path.join(UPLOAD_FOLDER, 'test.png'))
     
-    def _send_prod(self):
+    def _send_local(self):
         from diffusers import DiffusionPipeline
         import torch
 
@@ -54,7 +54,39 @@ class ImageRequest():
         pipe.enable_attention_slicing()
 
         # Results match those from the CPU device after the warmup pass.
-        return pipe(self.prompt, num_inference_steps=25).images[0]
+        return pipe(self.prompt, num_inference_steps=steps).images[0]
+    
+    def _send_prod(self):
+        import base64
+        from PIL import Image
+
+        api_host = 'https://api.stability.ai'
+        engine_id = 'stable-diffusion-xl-beta-v2-2-2'    
+
+        url = f"{api_host}/v1/generation/{engine_id}/text-to-image"
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "Authorization": f"Bearer {os.environ.get('STABILITY_API_KEY')}"
+        }
+        payload = {}
+        payload['text_prompts'] = [{"text": f"{self.prompt}"}]
+        payload['cfg_scale'] = 7
+        payload['clip_guidance_preset'] = 'FAST_BLUE'
+        payload['height'] = height
+        payload['width'] = width
+        payload['samples'] = 1
+        payload['steps'] = steps
+
+        response = requests.post(url,headers=headers,json=payload)
+        # TODO: save seed
+
+        #Processing the response
+        if response.status_code == 200:
+            data = response.json()
+            for i, image in enumerate(data["artifacts"]):
+                return Image.open(BytesIO(base64.b64decode(image["base64"])))
+
 
     def __str__(self):
         return f"{self.prompt} by {self.author}"
@@ -74,9 +106,11 @@ def receive_request():
     # Receive input fields from the frontend
     global queue
     data = request.json
-    print(data)
+    
     prompt = data.get('prompt')
     author = data.get('artist')
+    print(f"Received prompt {prompt} by {author}")
+
     image_request = ImageRequest(prompt, author)
     queue.append(image_request)
 
@@ -101,14 +135,11 @@ def last():
     image = image_request.send()
     filename = save(image, image_request.prompt, image_request.author)
 
-    print(f"queue {len(queue)}")
+    print(f"queue {len(queue)}: {queue}")
     print(f"request {image_request}")
     print(f"filename {filename}")
     
     return jsonify({"image_url": filename, "description": image_request.prompt, "author": image_request.author})
-
-    # Send the local file path back to the frontend
-    # return send_file(filename, mimetype='image/png')
 
 
 @app.route('/display', methods=['GET'])
@@ -118,12 +149,11 @@ def display():
    )
 
 
-
 def get_public_ip():
     try:
         response = requests.get('https://api.ipify.org?format=json')
         ip = response.json()['ip']
-        print(response.json())
+        print(f"Detected public IP: {ip}")
         return ip
     except Exception as e:
         print(f"Could not fetch public IP: {e}")
@@ -149,7 +179,6 @@ def generate_qr_code(ip, port):
 
 
 if __name__ == '__main__':
-    # freezer.freeze()
     ip = get_public_ip()
     if ip:
         generate_qr_code(ip, port)
