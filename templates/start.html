@@ -8,47 +8,62 @@
     <title>Start</title>
     <style>
         body {
-            height: 100vh;
+            background-color: #333;
+            color: #ffffff;
+            font-size: 1.5rem;
+        }
+
+        #guideLink {
+            text-align: center;
+            margin: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .container {
             display: flex;
             flex-direction: column;
-            background-color: #333;
-            color: #000000;
-        }
-        
-        .top, .bottom {
-            flex: 1;
-            display: flex;
+            height: 100vh;
             justify-content: center;
             align-items: center;
         }
 
-        #prompt, #artist, .btn {
-            width: 90%;
+        .form-control {
+            height: 70px;
+            font-size: 1.5rem;
+            background-color: #555;
         }
 
-        .form-control, .btn {
+        .btn {
+            height: 70px;
+            width: 100%;
+            font-size: 1.5rem;
+            background-color: #f0f0f0;
+        }
+
+        #infoCard {
             background-color: #555;
             color: #fff;
+            text-align: center;
         }
     </style>
 </head>
 
 <body>
-    <div class="top">
-        <input type="text" class="form-control form-control-lg" id="prompt" placeholder="Prompt">
+    <div id="guideLink">
+        <a href="https://beta.dreamstudio.ai/prompt-guide" target="_blank">Guía</a>
     </div>
-    <div class="bottom d-flex flex-column align-items-center">
-        <input type="text" class="form-control" id="artist" placeholder="Artist name">
-        <button class="btn btn-light mt-3 w-100" onclick="sendData()">Send</button>
+    <div class="container">
+        <input type="text" class="form-control form-control-lg mb-3" id="prompt" placeholder="Imaginate algo...">
+        <input type="text" class="form-control form-control-lg mb-3" id="artist" placeholder="Tu nombre de artista">
+        <button class="btn btn-light btn-lg" onclick="sendData()">Dibujar con IA!</button>
         <div id="infoCard" class="card mt-3 w-100" style="display:none">
             <div class="card-body">
                 <p id="queueNumber"></p>
                 <p id="countdown"></p>
             </div>
         </div>
-        
     </div>
-
+    <!-- Existing JavaScript code -->
     <script>
         time_per_turn = 30
 

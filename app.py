@@ -138,7 +138,6 @@ def last():
     image = image_request.send()
     filename = save(image, image_request.prompt, image_request.author)
 
-    print(f"queue {len(queue)}: {queue}")
     print(f"request {image_request}")
     print(f"filename {filename}")
     
