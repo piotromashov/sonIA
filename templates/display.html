@@ -70,17 +70,16 @@
 
         // Function to update image and meta information
         async function updateImageAndMeta() {
-            document.getElementById("dynamicImage").src = "static/images/public_ip_qr_code.png"
             document.getElementById("description").innerText = "Cargando siguiente imagen...";
             document.getElementById("author").innerText = "Conectate al wifi (insertar red y pass aca) y scanea para jugar";
+
             const apiUrl = "/last";
-            
             const response = await fetch(apiUrl);
             const data = await response.json();
             console.log(data)
-
-
+            
             if (data.description === "") {
+                document.getElementById("dynamicImage").src = "static/images/public_ip_qr_code.png"
                 document.getElementById("description").innerText = "Bienvenide a jugar con IA!";
                 document.getElementById("author").innerText = "Conectate al wifi (insertar red y pass aca) y scanea para comenzar :)";
             } else {
