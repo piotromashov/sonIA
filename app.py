@@ -16,7 +16,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 height = 512
 width = 512
-steps = 30
+steps = 50
 
 queue = []
 
@@ -79,6 +79,7 @@ class ImageRequest():
         payload['steps'] = steps
 
         response = requests.post(url,headers=headers,json=payload)
+        print(response)
         # TODO: save seed
 
         #Processing the response
@@ -182,6 +183,7 @@ def generate_qr_code(ip, port):
 
 if __name__ == '__main__':
     ip = get_public_ip()
+    # ip = "192.168.0.15"
     if ip:
         generate_qr_code(ip, port)
     

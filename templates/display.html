@@ -71,7 +71,7 @@
         // Function to update image and meta information
         async function updateImageAndMeta() {
             document.getElementById("description").innerText = "Cargando siguiente imagen...";
-            document.getElementById("author").innerText = "Conectate al wifi (insertar red y pass aca) y scanea para jugar";
+            // document.getElementById("author").innerText = "Conectate al wifi (insertar red y pass aca) y scanea para jugar";
 
             const apiUrl = "/last";
             const response = await fetch(apiUrl);
@@ -81,7 +81,7 @@
             if (data.description === "") {
                 document.getElementById("dynamicImage").src = "static/images/intro.png"
                 document.getElementById("description").innerText = "Bienvenide a jugar con IA!";
-                document.getElementById("author").innerText = "Conectate al wifi (insertar red y pass aca) y scanea para comenzar :)";
+                document.getElementById("author").innerText = "Scanea el código QR para comenzar :)";
             } else {
                 document.getElementById("dynamicImage").src = data.image_url;
                 document.getElementById("infoBox").style.display = "block";
@@ -90,7 +90,7 @@
             }
 
             // Refresh the image and meta every 30 seconds (30000 milliseconds)
-            setTimeout(updateImageAndMeta, 30000);
+            setTimeout(updateImageAndMeta, 10000);
         }
 
         // Initial call to start the loop
