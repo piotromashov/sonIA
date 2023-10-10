@@ -31,9 +31,9 @@ class ImageRequest():
         self.author = author
 
     def send(self):
-        # image = self._send_test()
+        image = self._send_test()
         # image = self._send_local()
-        image = self._send_prod()
+        # image = self._send_prod()
         return image
 
     def _send_test(self):

@@ -4,47 +4,68 @@
     <title>Display</title>
     <style>
         body, html {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            background-color: #000000;  
-        }
-        #container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            width: 100vw;
-        }
-        .side-wrapper {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .wrapper {
-            position: relative;
-            width: 100vh;
-            height: 100vh;
-            margin: 0 5px;
-        }
-        #dynamicImage, .sideImage {
-            height: 100%;
-            width: 100%;
-            object-fit: contain;
-        }
-        #infoBox {
-            position: absolute;
-            bottom: 10px; 
-            left: 10px;
-            right: 10px;
-            background-color: rgba(255, 255, 255, 0.5);
-            padding: 5px;
-        }
-        #infoBox > p#description, #infoBox > p#author {
-            text-align: center;
-            font-style: italic;
-        }
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #1a1a1a; /* Darker background for a minimalistic look */
+    font-family: 'Arial', sans-serif; /* Modern sans-serif font */
+}
+
+#container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100vw;
+}
+
+.side-wrapper {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.wrapper {
+    position: relative;
+    width: 100vh;
+    height: 100vh;
+    margin: 0 5px;
+    border-radius: 10px; /* Rounded corners for a soft appearance */
+    overflow: hidden; /* Ensures children do not overflow the rounded corners */
+}
+
+#dynamicImage, .sideImage {
+    height: 100%;
+    width: 100%;
+    object-fit: contain;
+    transition: opacity 0.3s; /* Smooth transition for image change */
+}
+
+#infoBox {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    background-color: rgba(255, 255, 255, 0.7);
+    padding: 10px 15px;
+    border-radius: 5px; /* Rounded corners for consistency */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+}
+
+#infoBox > p#description, #infoBox > p#author {
+    text-align: center;
+    font-style: italic;
+    font-size: 40px;
+    margin: 5px 0; /* Spacing for better readability */
+    color: #333; /* Dark grey for a subdued, modern look */
+}
+
+/* Hover effect for a subtle interactive feel */
+.side-wrapper:hover .sideImage {
+    opacity: 0.8;
+}
+
 
     </style>
 </head>
