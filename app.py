@@ -20,6 +20,7 @@ steps = 50
 
 queue = []
 last_image = "intro.png"
+time_per_turn = 5
 
 def save(image, description, author):
     filename = f'{description}-{author}.png'
@@ -100,7 +101,14 @@ class ImageRequest():
 @app.route('/', methods=['GET'])
 def start():
     return render_template(
-       'start.html', last_image = f"{UPLOAD_FOLDER}{last_image}"
+       'start.html', last_image = f"{UPLOAD_FOLDER}{last_image}", time_per_turn = time_per_turn
+   )
+
+
+@app.route('/display', methods=['GET'])
+def display():
+    return render_template(
+       'display.html', time_per_turn = time_per_turn
    )
 
 
@@ -148,13 +156,6 @@ def last():
     print(f"Request received: {image_request}")
     
     return jsonify({"last_image": f"{UPLOAD_FOLDER}{last_image}", "description": image_request.prompt, "author": image_request.author})
-
-
-@app.route('/display', methods=['GET'])
-def display():
-    return render_template(
-       'display.html'
-   )
 
 
 def get_public_ip():

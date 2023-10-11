@@ -167,11 +167,12 @@
     <div class="container">
         <input type="text" class="form-control" id="prompt" placeholder="Imaginate algo...">
         <input type="text" class="form-control" id="artist" placeholder="Tu nombre de artista">
-        <button class="btn" onclick="sendData()">Imaginar</button>
+        <button id="send" class="btn" onclick="sendData()">Imaginar</button>
         <div id="infoCard" class="card mt-3 w-100" style="display:none">
             <div class="card-body">
                 <p id="queueNumber"></p>
                 <p id="countdown"></p>
+                <p>Podés ir pensando tu próxima creación!</p>
             </div>
         </div>
     </div>
@@ -182,9 +183,8 @@
             <span class="close-btn" onclick="togglePopup()">&times;</span>
             <h2 style="margin-bottom: 1rem;">Generador de arte con IA</h2>
             <p>Ingresa un <b>prompt</b> y tu <b>nombre de artista</b> para dibujar con IA</p>
-            <p>El <b>prompt</b> es una frase que describe lo que quieres dibujar</p>
-            <p>Por ejemplo: "Un gato en un bosque"</p>
-            <p>El <b>nombre de artista</b> es tu nombre o seudonimo que quieras usar</p>
+            <p><small>El <b>prompt</b> es una frase que describe lo que querés dibujar, Ej: "Un gato en un bosque"</small></p>
+            <p><small>El <b>nombre de artista</b> es tu pseudonimo</small></p>
             <p>Apreta el boton <b>Imaginar</b></p>
         </div>
     </div>
@@ -196,7 +196,7 @@
             popup.style.display = popup.style.display === 'block' ? 'none' : 'block';
         }
 
-        time_per_turn = 5;
+        const time_per_turn = {{ time_per_turn }};
 
         async function sendData() {
             const prompt = document.getElementById("prompt").value;
@@ -215,9 +215,9 @@
 
             // Initialize countdown
             let countdownTime = time_per_turn * response.data.queue.length; // Assuming countdown time is received in seconds
-            console.log(countdownTime)
 
             // Show the card and populate with data
+            document.getElementById("send").style.display = "none";
             document.getElementById("infoCard").style.display = "block";
             document.getElementById("queueNumber").innerText = `Posición en la cola: ${response.data.queue.length}`;
             document.getElementById("countdown").innerText = `Estimado: ${countdownTime} segundos`;
@@ -233,8 +233,6 @@
 
                 if (countdownTime < 0) {
                     clearInterval(intervalId);
-                    countdownElement.innerText = "Es tu turno!";
-
                     fetch('/prompt')
                         .then(response => response.json())
                         .then(data => {
@@ -244,6 +242,8 @@
                         .catch(error => {
                             console.error("Error fetching the new image URL: ", error);
                         });
+                    document.getElementById("infoCard").style.display = "none";
+                    document.getElementById("send").style.display = "block";
                 }
             }, 1000);
         }

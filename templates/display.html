@@ -53,7 +53,7 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
 }
 
-#infoBox > p#description, #infoBox > p#author {
+#infoBox > p#caption {
     text-align: center;
     font-style: italic;
     font-size: 40px;
@@ -77,8 +77,7 @@
         <div class="wrapper">
             <img id="dynamicImage" src="" alt="Dynamic Image">
             <div id="infoBox">
-                <p id="description"></p>
-                <p id="author"></p>
+                <p id="caption"></p>
             </div>
         </div>
         <div class="side-wrapper">
@@ -89,6 +88,8 @@
 
     <script type="text/javascript">
 
+        const time_per_turn = {{ time_per_turn }}
+
         // Function to update image and meta information
         async function updateImageAndMeta() {
 
@@ -98,15 +99,13 @@
             console.log(data)
             document.getElementById("dynamicImage").src = data.last_image;
             if (data.description === "") {
-                document.getElementById("description").innerText = "Dream Studio";
-                document.getElementById("author").innerText = "Scanea el código QR para comenzar a jugar";
+                document.getElementById("caption").innerText = "Scanea el código QR para comenzar a jugar";
             } else {
                 document.getElementById("infoBox").style.display = "block";
-                document.getElementById("author").innerText = `${data.description}, de ${data.author}`;
+                document.getElementById("caption").innerText = `${data.description} - ${data.author}`;
             }
 
-            // Refresh the image and meta every 30 seconds (30000 milliseconds)
-            setTimeout(updateImageAndMeta, 10000);
+            setTimeout(updateImageAndMeta, 1000*time_per_turn);
         }
 
         // Initial call to start the loop
