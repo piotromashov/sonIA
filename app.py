@@ -20,7 +20,7 @@ steps = 50
 
 queue = []
 last_image = "intro.png"
-time_per_turn = 5
+time_per_turn = 30
 
 def save(image, description, author):
     filename = f'{description}-{author}.png'
@@ -28,15 +28,39 @@ def save(image, description, author):
     image.save(filepath)
     return filename
 
+def improve_prompt(prompt):
+    import openai
+
+    openai.api_key = os.environ.get('OPENAI_API_KEY')
+
+    try:
+        response = openai.Completion.create(
+            model="gpt-3.5-turbo-instruct",
+            prompt=f"i want you to act as an artistic designer and prompt engineer. I want you to improve a prompt that i'll give you for image generation. don't greet me, don't do anything else. The original prompt is enclosed in triple backticks. ```{prompt}```",
+            temperature=0.9,
+            max_tokens=150,
+            top_p=1,
+            frequency_penalty=0,
+            presence_penalty=0.6,
+            stop=[" Human:", " AI:"]
+        )
+        improved_prompt = response["choices"][0]["text"].strip()
+        print(f"Improved prompt: {improved_prompt}")
+        return improved_prompt
+    except Exception as e:
+        print(f"Error with OpenAI API: {e}")
+        return prompt  # Return the original prompt if there's an error
+
+
 class ImageRequest():
     def __init__(self, prompt, author):
         self.prompt = prompt
         self.author = author
 
     def send(self):
-        image = self._send_test()
+        # image = self._send_test()
         # image = self._send_local()
-        # image = self._send_prod()
+        image = self._send_prod()
         return image
 
     def _send_test(self):
@@ -47,7 +71,6 @@ class ImageRequest():
     
     def _send_local(self):
         from diffusers import DiffusionPipeline
-        import torch
 
         repo_id = "../stable-diffusion-v1-5"
         pipe = DiffusionPipeline.from_pretrained(repo_id, use_safetensors=True)
@@ -63,6 +86,8 @@ class ImageRequest():
         import base64
         from PIL import Image
 
+        # prompt = improve_prompt(self.prompt)
+
         api_host = 'https://api.stability.ai'
         engine_id = 'stable-diffusion-xl-beta-v2-2-2'    
 
@@ -73,7 +98,7 @@ class ImageRequest():
             "Authorization": f"Bearer {os.environ.get('STABILITY_API_KEY')}"
         }
         payload = {}
-        payload['text_prompts'] = [{"text": f"{self.prompt}"}]
+        payload['text_prompts'] = [{"text": f"{prompt}"}]
         payload['cfg_scale'] = 7
         payload['clip_guidance_preset'] = 'FAST_BLUE'
         payload['height'] = height
