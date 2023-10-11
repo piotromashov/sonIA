@@ -91,22 +91,17 @@
 
         // Function to update image and meta information
         async function updateImageAndMeta() {
-            document.getElementById("description").innerText = "Cargando siguiente imagen...";
-            // document.getElementById("author").innerText = "Conectate al wifi (insertar red y pass aca) y scanea para jugar";
 
             const apiUrl = "/last";
             const response = await fetch(apiUrl);
             const data = await response.json();
             console.log(data)
-            
+            document.getElementById("dynamicImage").src = data.last_image;
             if (data.description === "") {
-                document.getElementById("dynamicImage").src = "static/images/intro.png"
                 document.getElementById("description").innerText = "Dream Studio";
                 document.getElementById("author").innerText = "Scanea el código QR para comenzar a jugar";
             } else {
-                document.getElementById("dynamicImage").src = data.image_url;
                 document.getElementById("infoBox").style.display = "block";
-                // document.getElementById("description").innerText = `Description: ${data.description}`;
                 document.getElementById("author").innerText = `${data.description}, de ${data.author}`;
             }
 

@@ -28,7 +28,7 @@
             width: 100%; /* Ensuring it takes the full width to center properly */
         }
 
-        .intro-image {
+        #dynamicImage {
             width: 80%;
             max-width: 400px;
             margin: 0.5rem auto 2rem; /* Reduced top margin to bring it closer to the title */
@@ -162,10 +162,7 @@
         <a href="#" onclick="togglePopup()">Como jugar</a>
     </div>
 
-
-
-    <img src="static/images/intro.png" alt="Introduction Image" class="intro-image">
-
+    <img id="dynamicImage" alt="Introduction Image" src={{ last_image }}>
 
     <div class="container">
         <input type="text" class="form-control" id="prompt" placeholder="Imaginate algo...">
@@ -199,7 +196,7 @@
             popup.style.display = popup.style.display === 'block' ? 'none' : 'block';
         }
 
-        time_per_turn = 30
+        time_per_turn = 5;
 
         async function sendData() {
             const prompt = document.getElementById("prompt").value;
@@ -237,13 +234,20 @@
                 if (countdownTime < 0) {
                     clearInterval(intervalId);
                     countdownElement.innerText = "Es tu turno!";
+
+                    fetch('/prompt')
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log(data)
+                            document.getElementById("dynamicImage").src = data.last_image;
+                        })
+                        .catch(error => {
+                            console.error("Error fetching the new image URL: ", error);
+                        });
                 }
             }, 1000);
         }
     </script>
 
 </body>
-
-
-
 </html>

@@ -19,10 +19,12 @@ width = 512
 steps = 50
 
 queue = []
+last_image = "intro.png"
 
 def save(image, description, author):
-    filename = f'{UPLOAD_FOLDER}{description}-{author}.png'
-    image.save(filename)
+    filename = f'{description}-{author}.png'
+    filepath = f'{UPLOAD_FOLDER}{filename}'
+    image.save(filepath)
     return filename
 
 class ImageRequest():
@@ -98,12 +100,16 @@ class ImageRequest():
 @app.route('/', methods=['GET'])
 def start():
     return render_template(
-       'start.html'
+       'start.html', last_image = f"{UPLOAD_FOLDER}{last_image}"
    )
 
 
+@app.route('/prompt', methods=['GET'])
+def get_prompt():
+    return jsonify({"last_image": f"{UPLOAD_FOLDER}{last_image}"})
+
 @app.route('/prompt', methods=['POST'])
-def receive_request():
+def post_prompt():
     # Receive input fields from the frontend
     global queue
     data = request.json
@@ -127,9 +133,9 @@ def receive_request():
 
 @app.route('/last', methods=['GET'])
 def last():
-    global queue
+    global queue, last_image
     if len(queue) == 0:
-        return jsonify({"image_url": f"{UPLOAD_FOLDER}public_ip_qr_code.png", "description": "", "author": ""})
+        return jsonify({"last_image": f"{UPLOAD_FOLDER}{last_image}", "description": "", "author": ""})
     # don't empty the queue, just return the last item
     elif len(queue) == 1:
         image_request = queue[0]
@@ -137,12 +143,11 @@ def last():
         image_request = queue.pop(0)
 
     image = image_request.send()
-    filename = save(image, image_request.prompt, image_request.author)
+    last_image = save(image, image_request.prompt, image_request.author)
 
-    print(f"request {image_request}")
-    print(f"filename {filename}")
+    print(f"Request received: {image_request}")
     
-    return jsonify({"image_url": filename, "description": image_request.prompt, "author": image_request.author})
+    return jsonify({"last_image": f"{UPLOAD_FOLDER}{last_image}", "description": image_request.prompt, "author": image_request.author})
 
 
 @app.route('/display', methods=['GET'])
