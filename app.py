@@ -86,7 +86,8 @@ class ImageRequest():
         import base64
         from PIL import Image
 
-        # prompt = improve_prompt(self.prompt)
+        prompt = self.prompt
+        prompt = improve_prompt(prompt)
 
         api_host = 'https://api.stability.ai'
         engine_id = 'stable-diffusion-xl-beta-v2-2-2'    
@@ -107,8 +108,6 @@ class ImageRequest():
         payload['steps'] = steps
 
         response = requests.post(url,headers=headers,json=payload)
-        print(response)
-        # TODO: save seed
 
         #Processing the response
         if response.status_code == 200:
@@ -125,13 +124,16 @@ class ImageRequest():
 
 @app.route('/', methods=['GET'])
 def start():
+    global time_per_turn, last_image
+    print(time_per_turn)
     return render_template(
-       'start.html', last_image = f"{UPLOAD_FOLDER}{last_image}", time_per_turn = time_per_turn
+       'start.html', last_image=f"{UPLOAD_FOLDER}{last_image}", time_per_turn=time_per_turn
    )
 
 
 @app.route('/display', methods=['GET'])
 def display():
+    global time_per_turn
     return render_template(
        'display.html', time_per_turn = time_per_turn
    )
@@ -139,6 +141,7 @@ def display():
 
 @app.route('/prompt', methods=['GET'])
 def get_prompt():
+    global last_image
     return jsonify({"last_image": f"{UPLOAD_FOLDER}{last_image}"})
 
 @app.route('/prompt', methods=['POST'])
@@ -149,10 +152,10 @@ def post_prompt():
     
     prompt = data.get('prompt')
     author = data.get('artist')
-    print(f"Received prompt {prompt} by {author}")
+    print(f"Received prompt: {prompt} by {author}")
 
-    if prompt is None or prompt == "" or author is None or author == "":
-        return jsonify({"status": "error", "message": "prompt or author is missing"})
+    if prompt is None or prompt == "":
+        return jsonify({"status": "error", "message": "prompt is missing"})
 
     image_request = ImageRequest(prompt, author)
     queue.append(image_request)
@@ -168,17 +171,14 @@ def post_prompt():
 def last():
     global queue, last_image
     if len(queue) == 0:
-        return jsonify({"last_image": f"{UPLOAD_FOLDER}{last_image}", "description": "", "author": ""})
-    # don't empty the queue, just return the last item
-    elif len(queue) == 1:
-        image_request = queue[0]
+        return jsonify({"last_image": f"{UPLOAD_FOLDER}intro.png", "description": "", "author": ""})
     else:
         image_request = queue.pop(0)
 
     image = image_request.send()
     last_image = save(image, image_request.prompt, image_request.author)
 
-    print(f"Request received: {image_request}")
+    print(f"Image Generated: {image_request}")
     
     return jsonify({"last_image": f"{UPLOAD_FOLDER}{last_image}", "description": image_request.prompt, "author": image_request.author})
 

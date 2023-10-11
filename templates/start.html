@@ -191,12 +191,14 @@
 
     <script>
 
+        document.getElementById("dynamicImage").src = "{{ last_image }}?date="+new Date().getTime();
+
         function togglePopup() {
             const popup = document.getElementById('howToPlayPopup');
             popup.style.display = popup.style.display === 'block' ? 'none' : 'block';
         }
 
-        const time_per_turn = {{ time_per_turn }};
+        let time_per_turn = {{ time_per_turn | tojson | safe }};
 
         async function sendData() {
             const prompt = document.getElementById("prompt").value;
@@ -233,11 +235,12 @@
 
                 if (countdownTime < 0) {
                     clearInterval(intervalId);
+
                     fetch('/prompt')
                         .then(response => response.json())
                         .then(data => {
-                            console.log(data)
-                            document.getElementById("dynamicImage").src = data.last_image;
+                            console.log(data);
+                            document.getElementById("dynamicImage").src = data.last_image+"?date="+new Date().getTime();
                         })
                         .catch(error => {
                             console.error("Error fetching the new image URL: ", error);

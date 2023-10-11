@@ -97,7 +97,7 @@
             const response = await fetch(apiUrl);
             const data = await response.json();
             console.log(data)
-            document.getElementById("dynamicImage").src = data.last_image;
+            document.getElementById("dynamicImage").src = data.last_image+"?date="+new Date().getTime();
             if (data.description === "") {
                 document.getElementById("caption").innerText = "Scanea el código QR para comenzar a jugar";
             } else {
