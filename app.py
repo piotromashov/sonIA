@@ -20,7 +20,9 @@ steps = 50
 
 queue = []
 last_image = "intro.png"
-time_per_turn = 30
+time_per_turn = 15
+
+ngrok_url = "https://77ed-190-16-175-209.ngrok-free.app"
 
 def save(image, description, author):
     filename = f'{description}-{author}.png'
@@ -36,7 +38,7 @@ def improve_prompt(prompt):
     try:
         response = openai.Completion.create(
             model="gpt-3.5-turbo-instruct",
-            prompt=f"i want you to act as an artistic designer and prompt engineer. I want you to improve a prompt that i'll give you for image generation. don't greet me, don't do anything else. The original prompt is enclosed in triple backticks. ```{prompt}```",
+            prompt=f"i want you to act as an artistic designer and prompt engineer. i'll give you a prompt in spanish for image generation. translate it to english and improve it. don't greet me, don't do anything else. just give me the prompt without mentioning it explicitly. The original prompt is enclosed in triple backticks. ```{prompt}```",
             temperature=0.9,
             max_tokens=150,
             top_p=1,
@@ -56,6 +58,8 @@ class ImageRequest():
     def __init__(self, prompt, author):
         self.prompt = prompt
         self.author = author
+        self.image_binary = self.send()
+        self.image_path = save(self.image_binary, prompt, author)
 
     def send(self):
         # image = self._send_test()
@@ -87,7 +91,7 @@ class ImageRequest():
         from PIL import Image
 
         prompt = self.prompt
-        prompt = improve_prompt(prompt)
+        # prompt = improve_prompt(prompt)
 
         api_host = 'https://api.stability.ai'
         engine_id = 'stable-diffusion-xl-beta-v2-2-2'    
@@ -117,17 +121,16 @@ class ImageRequest():
 
 
     def __str__(self):
-        return f"{self.prompt} by {self.author}"
+        return f"{self.prompt} by {self.author}, path: {self.image_path}"
 
 
 # ROUTES
 
 @app.route('/', methods=['GET'])
 def start():
-    global time_per_turn, last_image
-    print(time_per_turn)
+    global time_per_turn
     return render_template(
-       'start.html', last_image=f"{UPLOAD_FOLDER}{last_image}", time_per_turn=time_per_turn
+       'start.html', last_image=f"{UPLOAD_FOLDER}intro.png", time_per_turn=time_per_turn
    )
 
 
@@ -141,8 +144,8 @@ def display():
 
 @app.route('/prompt', methods=['GET'])
 def get_prompt():
-    global last_image
-    return jsonify({"last_image": f"{UPLOAD_FOLDER}{last_image}"})
+    global queue
+    return jsonify({"last_image": f"{UPLOAD_FOLDER}{queue[0].image_path}"})
 
 @app.route('/prompt', methods=['POST'])
 def post_prompt():
@@ -172,15 +175,14 @@ def last():
     global queue, last_image
     if len(queue) == 0:
         return jsonify({"last_image": f"{UPLOAD_FOLDER}intro.png", "description": "", "author": ""})
+    if len(queue) == 1:
+        return jsonify({"last_image": f"{UPLOAD_FOLDER}{queue[0].image_path}", "description": queue[0].prompt, "author": queue[0].author})
     else:
         image_request = queue.pop(0)
 
-    image = image_request.send()
-    last_image = save(image, image_request.prompt, image_request.author)
-
     print(f"Image Generated: {image_request}")
-    
-    return jsonify({"last_image": f"{UPLOAD_FOLDER}{last_image}", "description": image_request.prompt, "author": image_request.author})
+
+    return jsonify({"last_image": f"{UPLOAD_FOLDER}{image_request.image_path}", "description": image_request.prompt, "author": image_request.author})
 
 
 def get_public_ip():
@@ -195,7 +197,7 @@ def get_public_ip():
 
 def generate_qr_code(ip, port):
     try:
-        url = f"http://{ip}:{port}"
+        url = ngrok_url if ngrok_url else f"http://{ip}:{port}"
         qr = qrcode.QRCode(
             version=1,
             error_correction=qrcode.constants.ERROR_CORRECT_L,
@@ -214,7 +216,7 @@ def generate_qr_code(ip, port):
 
 if __name__ == '__main__':
     ip = get_public_ip()
-    # ip = "192.168.0.15"
+    ip = "192.168.0.163"
     if ip:
         generate_qr_code(ip, port)
     

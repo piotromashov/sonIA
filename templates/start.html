@@ -172,7 +172,7 @@
             <div class="card-body">
                 <p id="queueNumber"></p>
                 <p id="countdown"></p>
-                <p>Podés ir pensando tu próxima creación!</p>
+                <p>Procesando. Podés ir pensando tu próxima creación!</p>
             </div>
         </div>
     </div>
@@ -204,6 +204,10 @@
             const prompt = document.getElementById("prompt").value;
             const artist = document.getElementById("artist").value;
 
+            // Show the card and populate with data
+            document.getElementById("send").style.display = "none";
+            document.getElementById("infoCard").style.display = "block";
+
             let response = await fetch('/prompt', {
                 method: 'POST',
                 headers: {
@@ -213,16 +217,13 @@
             });
 
             response = await response.json();
-            console.log(response);
-
             // Initialize countdown
             let countdownTime = time_per_turn * response.data.queue.length; // Assuming countdown time is received in seconds
-
-            // Show the card and populate with data
-            document.getElementById("send").style.display = "none";
-            document.getElementById("infoCard").style.display = "block";
             document.getElementById("queueNumber").innerText = `Posición en la cola: ${response.data.queue.length}`;
             document.getElementById("countdown").innerText = `Estimado: ${countdownTime} segundos`;
+            console.log(response);
+
+
 
             const countdownElement = document.getElementById("countdown");
             const queueNumberElement = document.getElementById("queueNumber");
